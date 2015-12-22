@@ -42,6 +42,7 @@ namespace Calc.Wpf
             var calculation = new FactCalculation(i);
 
             calculation.Calculate();
+            //calculation.Calculate2();
 
             resultBox.Text = String.Format("n!={0}({1} elapsed)", calculation.Result, calculation.Elapsed);
 
