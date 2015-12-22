@@ -32,6 +32,86 @@ namespace Calc.Fx
 
         }
 
+        private static BigInteger ProdTree(int l, int r)
+        {
+            if (l > r)
+                return 1;
+            if (l == r)
+                return l;
+            if (r - l == 1)
+                return (BigInteger)l * r;
+
+            var m = (l + r) / 2;
+
+            return ProdTree(l, m) * ProdTree(m + 1, r);
+        }
+
+        private static Task<BigInteger> ProdTreeAsync(int l, int r)
+        {
+            return Task<BigInteger>.Run(() => ProdTree(l, r));
+        }
+
+        private BigInteger CalculateMultithread()
+        {
+            var threadCount = Environment.ProcessorCount;
+
+            if (_n < 0)
+                return 0;
+
+            switch (_n)
+            {
+                case 0:
+                    return 1;
+                case 1:
+                case 2:
+                    return _n;
+            }
+
+            if (_n < threadCount + 1)
+                return ProdTree(2, _n);
+
+            var tasks = new Task<BigInteger>[threadCount];
+
+            tasks[0] = ProdTreeAsync(2, _n / threadCount);
+            for (int i = 1; i < threadCount; i++)
+            {
+                tasks[i] = ProdTreeAsync(((_n / threadCount) * i) + 1, (_n / threadCount) * (i + 1));
+            }
+
+            Task<BigInteger>.WaitAll(tasks);
+
+            BigInteger result = 1;
+
+            for (var i = 0; i < threadCount; i++)
+            {
+                result *= tasks[i].Result;
+            }
+
+            return result;
+        }
+
+        public bool Calculate2()
+        {
+            try
+            {
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+
+                var f = CalculateMultithread();
+
+                _result = f.ToString();
+
+                stopWatch.Stop();
+                _time = stopWatch.Elapsed;
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public bool Calculate()
         {
             try
